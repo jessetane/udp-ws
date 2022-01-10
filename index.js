@@ -22,7 +22,7 @@ wsServer.on('connection', (client, req) => {
   console.log('connect', req.socket.remoteAddress)
   function onmessage (evt) {
     if (client.authenticated) {
-      nmeaClient.send(evt, process.env.NMEA_PORT || '1457', process.env.NMEA_HOST || '172.16.0.51')
+      udpSocket.send(evt, process.env.UDP_PORT || '1457', process.env.UDP_HOST || '127.0.0.1')
     } else if (evt.indexOf('rw:') === 0) {
       const psk = evt.slice(3).toString()
       if (psk === (process.env.PRE_SHARED_KEY || 'secret')) {
@@ -52,9 +52,9 @@ wsServer.on('connection', (client, req) => {
   }
 })
 
-const nmeaClient = dgram.createSocket('udp4')
-nmeaClient.bind(process.env.NMEA_PORT || '1457')
-nmeaClient.on('message', message => {
+const udpSocket = dgram.createSocket(process.env.UDP_FAMILY || 'udp4')
+udpSocket.bind(process.env.UDP_PORT || '1457')
+udpSocket.on('message', message => {
   wsClients.forEach(c => {
     if (c.authenticated || c.readonly) {
       c.send(message.toString())
