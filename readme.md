@@ -26,3 +26,6 @@ const s = new WebSocket('wss://server.com')
 // or 'rw:<secret>' for read and write access
 s.send('rw:secret')
 ```
+
+## License
+MIT
