@@ -14,7 +14,7 @@ PRE_SHARED_KEY=secret \
   node udp-ws/index.js
 ```
 
-TLS proxy of your choosing (TLS is required for PSK auth):
+TLS proxy of your choosing (TLS is required for safe PSK auth):
 ```
 server.com:443 <> server.com:8080
 ```
