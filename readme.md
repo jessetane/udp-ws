@@ -4,9 +4,11 @@ UDP <> WebSocket bridge with PSK auth.
 ## How
 Server process:
 ``` shell
-UDP_HOST=127.0.0.1 \
-UDP_PORT=1457 \
-WS_HOST='[::]' \
+UDP_HOST_SEND=127.0.0.1 \
+UDP_PORT_SEND=1457 \
+UDP_HOST_RECV=255.255.255.255 \
+UDP_PORT_RECV=1457 \
+WS_HOST='::' \
 WS_PORT=8080 \
 PRE_SHARED_KEY=secret \
   node udp-ws/index.js
