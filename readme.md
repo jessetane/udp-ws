@@ -22,9 +22,18 @@ server.com:443 <> server.com:8080
 Client javascript:
 ``` javascript
 const s = new WebSocket('wss://server.com')
-// first message must be 'ro' for readonly access
-// or 'rw:<secret>' for read and write access
-s.send('rw:secret')
+s.authenticated = false
+s.addEventListener('message', evt => {
+  if (s.authenticated) {
+    console.log('got message', evt.data)
+  } else if (evt.data === 'ok') {
+    s.authenticated = true
+    console.log('auth success')
+  } else {
+    console.log('auth failure')
+  }
+})
+s.send('secret')
 ```
 
 ## License

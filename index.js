@@ -1,4 +1,4 @@
-// import WebSocket from 'ws'
+// import WebSocket from 'ws' // TODO this doesn't work for some reason
 import WebSocketServer from './node_modules/ws/lib/websocket-server.js'
 const WebSocket = { Server: WebSocketServer }
 import dgram from 'dgram'
@@ -20,22 +20,19 @@ wsServer.on('connection', (client, req) => {
   client.on('message', onmessage)
   wsClients.push(client)
   console.log('connect', req.socket.remoteAddress)
-  function onmessage (evt) {
+  function onmessage (message) {
     if (client.authenticated) {
-      udpSocketSend.send(evt, process.env.UDP_PORT_SEND || '1457', udpHostSend)
-    } else if (evt.indexOf('rw:') === 0) {
-      const psk = evt.slice(3).toString()
-      if (psk === (process.env.PRE_SHARED_KEY || 'secret')) {
+      udpSocketSend.send(message, process.env.UDP_PORT_SEND || '1457', udpHostSend)
+    } else {
+      if (message.toString() === (process.env.PRE_SHARED_KEY || 'secret')) {
         client.authenticated = true
-        client.send('ack')
+        client.send('ok')
         console.log('auth', req.socket.remoteAddress)
       } else {
         client.authenticated = false
-        client.send('nack')
+        client.send('not ok')
         console.log('auth failed', req.socket.remoteAddress)
       }
-    } else if (evt === 'ro') {
-      client.readonly = true
     }
   }
   function onclose (err) {
@@ -60,7 +57,7 @@ const udpSocketRecv = dgram.createSocket(udpHostRecv.indexOf(':') !== -1 ? 'udp6
 udpSocketRecv.bind(process.env.UDP_PORT_RECV || '1457', udpHostRecv)
 udpSocketRecv.on('message', message => {
   wsClients.forEach(c => {
-    if (c.authenticated || c.readonly) {
+    if (c.authenticated) {
       c.send(message.toString())
     }
   })
