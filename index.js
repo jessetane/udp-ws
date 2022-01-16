@@ -14,12 +14,13 @@ wsServer.on('listening', () => {
 })
 
 wsServer.on('connection', (client, req) => {
+  client.id = req.socket.remotePort
   client.authenticated = false
   client.on('error', onclose)
   client.on('close', onclose)
   client.on('message', onmessage)
   wsClients.push(client)
-  console.log('connect', req.socket.remoteAddress)
+  console.log('connect', client.id)
   function onmessage (message) {
     if (client.authenticated) {
       udpSendSocket.send(message, process.env.UDP_PORT_SEND || '1457', udpSendHost)
@@ -27,11 +28,11 @@ wsServer.on('connection', (client, req) => {
       if (message.toString() === (process.env.PRE_SHARED_KEY || 'secret')) {
         client.authenticated = true
         client.send('ok')
-        console.log('auth', req.socket.remoteAddress)
+        console.log('auth', client.id)
       } else {
         client.authenticated = false
         client.send('not ok')
-        console.log('auth failed', req.socket.remoteAddress)
+        console.log('auth failed', client.id)
       }
     }
   }
@@ -42,9 +43,9 @@ wsServer.on('connection', (client, req) => {
     client.removeListener('message', onmessage)
     wsClients = wsClients.filter(c => c !== client)
     if (err) {
-      console.error('disconnect with error', err, req.socket.remoteAddress)
+      console.error('disconnect with error', err, client.id)
     } else {
-      console.log('disconnect', req.socket.remoteAddress)
+      console.log('disconnect', client.id)
     }
   }
 })
@@ -59,6 +60,7 @@ udpRecvSocket.on('message', message => {
   wsClients.forEach(c => {
     if (c.authenticated) {
       c.send(message.toString())
+      // console.log('sent data to', c.id)
     }
   })
 })
